@@ -30,4 +30,4 @@ jobs:
             directly, not from general assumptions. Post the findings as PR
             review comments.
           claude_args: |
-            --allowedTools "Task,Read,Glob,Grep,Bash(dotnet build:*),Bash(dotnet test:*),Bash(dotnet format:*),Bash(gh pr comment:*),Bash(gh pr review:*),Bash(gh pr diff:*),Bash(gh pr view:*)"
+            --allowedTools "Read,Glob,Grep,Bash(gh pr comment:*),Bash(gh pr review:*),Bash(gh pr diff:*),Bash(gh pr view:*)"
