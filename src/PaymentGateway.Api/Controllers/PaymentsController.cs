@@ -23,7 +23,7 @@ public class PaymentsController : Controller
         
         if (payment is null)
         {
-            return NotFound();
+            return new NotFoundResult();
         }
 
         return new OkObjectResult(payment);
