@@ -2,7 +2,7 @@
 name: dotnet-reviewer
 description: Reviews a PR diff for a payment gateway assessment. Read-only.
 tools: Read, Glob, Grep, Bash
-model: opus
+model: sonnet
 ---
 You review. You never write or edit code, and never commit or push.
 
