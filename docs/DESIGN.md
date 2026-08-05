@@ -11,7 +11,7 @@ Decisions and assumptions for the assignment.
 
 ## Models
 
-- Payment created to be the domain model separate from request/response DTOs. It's the only that holds the sensitive information. ToString overriden to avoid leaking information in the logs.
+- Payment is the domain model, kept separate from the request/response DTOs. It overrides `ToString`, because as a record it would print every property. In a class like `PostPaymentRequest` it returns just the type name, so nothing to redact. Payment is a validated PostPaymentRequest.
 
 - Request properties nullable so the validator can properly report errors in the request (I believe otherwise it would bind to 0 in some cases instead of null). In that case we would be getting "must be between 1 and 12" for the expiry month instead of a message complaining about the month being required.
 
