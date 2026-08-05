@@ -29,7 +29,7 @@ internal sealed class AcquiringBankClient : IAcquiringBankClient
     /// <inheritdoc/>
         public async Task<BankPaymentResult> AuthorizeAsync(Payment payment, CancellationToken cancellationToken)
     {
-        BankAuthorizationRequest request = BankAuthorizationRequest.From(payment);
+        BankAuthorizationRequest request = BankAuthorizationRequest.FromValidatedPayment(payment);
 
         try
         {

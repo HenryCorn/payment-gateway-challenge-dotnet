@@ -7,7 +7,7 @@ namespace PaymentGateway.Api.Models.Requests;
 /// <summary>
 /// The acquiring bank's request shape,
 /// </summary>
-internal sealed class BankAuthorizationRequest
+public sealed class BankAuthorizationRequest
 {
     /// <summary>
     /// Gets or sets the card number to be authorized.
@@ -39,12 +39,12 @@ internal sealed class BankAuthorizationRequest
     [JsonPropertyName("cvv")]
     public required string Cvv { get; init; }
     
-    public static BankAuthorizationRequest From(Payment payment)
+    public static BankAuthorizationRequest FromValidatedPayment(Payment payment)
     {
         return new BankAuthorizationRequest
         {
             CardNumber = payment.CardNumber,
-            ExpiryDate = $"{payment.ExpiryMonth}/{payment.ExpiryYear}",
+            ExpiryDate = $"{payment.ExpiryMonth:D2}/{payment.ExpiryYear:D4}",
             Currency = payment.Currency,
             Amount = payment.Amount,
             Cvv = payment.Cvv
