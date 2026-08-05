@@ -16,13 +16,13 @@ public sealed class BankAuthorizationRequest
     public required string CardNumber {get; set;}
     
     /// <summary>
-    /// Gets or sets the expiry date of the card in the format "MM/YY".
+    /// Gets or sets the expiry date of the card in the format "MM/yyyy", e.g. "04/2025".
     /// </summary>
     [JsonPropertyName("expiry_date")]
     public required string ExpiryDate { get; set; }
-    
+
     /// <summary>
-    /// Gets or sets the CVV of the card.
+    /// Gets or sets the currency of the payment.
     /// </summary>
     [JsonPropertyName("currency")]
     public required string Currency { get; set; }
