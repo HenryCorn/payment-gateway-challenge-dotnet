@@ -53,8 +53,9 @@ public static class AcquiringBankServiceCollectionExtensions
 
         // Order is outermost first. Retry wraps the breaker wraps the timeout -
         // see the note below for why the timeout is innermost.
-        pipeline
-            .AddRetry(new HttpRetryStrategyOptions
+        if (options.MaxRetryAttempts > 0)
+        {
+            pipeline.AddRetry(new HttpRetryStrategyOptions
             {
                 MaxRetryAttempts = options.MaxRetryAttempts,
                 Delay = RetryDelay,
@@ -68,7 +69,10 @@ public static class AcquiringBankServiceCollectionExtensions
                 ShouldHandle = new PredicateBuilder<HttpResponseMessage>()
                     .HandleResult(static response => response.StatusCode == HttpStatusCode.ServiceUnavailable)
                     .Handle<HttpRequestException>(NeverReachedTheBank)
-            })
+            });
+        }
+
+        pipeline
             .AddCircuitBreaker(new HttpCircuitBreakerStrategyOptions
             {
                 FailureRatio = BreakerFailureRatio,
