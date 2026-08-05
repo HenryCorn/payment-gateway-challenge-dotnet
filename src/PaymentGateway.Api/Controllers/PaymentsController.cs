@@ -17,13 +17,13 @@ public class PaymentsController : Controller
     }
 
     [HttpGet("{id:guid}")]
-    public async Task<ActionResult<PostPaymentResponse?>> GetPaymentAsync(Guid id)
+    public async Task<ActionResult<PaymentResponse?>> GetPaymentAsync(Guid id)
     {
         var payment = _paymentsRepository.Get(id);
         
         if (payment is null)
         {
-            return new NotFoundResult();
+            return NotFound();
         }
 
         return new OkObjectResult(payment);
