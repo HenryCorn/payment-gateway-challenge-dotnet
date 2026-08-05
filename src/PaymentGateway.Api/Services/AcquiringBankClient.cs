@@ -1,9 +1,7 @@
 using System.Net;
 
+using PaymentGateway.Api.Contracts.AcquiringBank;
 using PaymentGateway.Api.Domain;
-using PaymentGateway.Api.Enums;
-using PaymentGateway.Api.Models.Requests;
-using PaymentGateway.Api.Models.Responses;
 
 using Polly.CircuitBreaker;
 using Polly.Timeout;

@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 using PaymentGateway.Api.Domain;
 
-namespace PaymentGateway.Api.Models.Requests;
+namespace PaymentGateway.Api.Contracts.AcquiringBank;
 
 /// <summary>
 /// The acquiring bank's request shape,

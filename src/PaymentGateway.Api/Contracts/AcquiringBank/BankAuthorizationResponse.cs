@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace PaymentGateway.Api.Models.Responses;
+namespace PaymentGateway.Api.Contracts.AcquiringBank;
 
 /// <summary>
 /// Represents the response from the acquiring bank after attempting to authorize a payment.

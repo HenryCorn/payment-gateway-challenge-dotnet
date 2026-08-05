@@ -1,5 +1,5 @@
+using PaymentGateway.Api.Contracts.AcquiringBank;
 using PaymentGateway.Api.Domain;
-using PaymentGateway.Api.Models.Requests;
 using PaymentGateway.Api.TestUtils.Builders;
 
 namespace PaymentGateway.Api.Tests.Domain;

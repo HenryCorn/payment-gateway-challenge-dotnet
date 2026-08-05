@@ -1,6 +1,6 @@
-using PaymentGateway.Api.Enums;
+using PaymentGateway.Api.Domain;
 
-namespace PaymentGateway.Api.Models.Responses;
+namespace PaymentGateway.Api.Contracts.Merchant;
 
 // <summary>
 // Represents the response returned after processing a payment.

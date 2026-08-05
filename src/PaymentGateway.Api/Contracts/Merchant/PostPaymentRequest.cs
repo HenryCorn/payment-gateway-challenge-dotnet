@@ -1,4 +1,4 @@
-﻿namespace PaymentGateway.Api.Models.Requests;
+﻿namespace PaymentGateway.Api.Contracts.Merchant;
 
 // <summary>
 // Represents the request to post a payment.

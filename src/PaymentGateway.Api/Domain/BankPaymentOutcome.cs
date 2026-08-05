@@ -1,4 +1,4 @@
-namespace PaymentGateway.Api.Enums;
+namespace PaymentGateway.Api.Domain;
 
 /// <summary>
 /// Represents the possible outcomes of a bank payment authorization attempt.

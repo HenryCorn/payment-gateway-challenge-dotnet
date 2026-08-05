@@ -1,5 +1,4 @@
 using PaymentGateway.Api.Domain;
-using PaymentGateway.Api.Models.Responses;
 
 namespace PaymentGateway.Api.Services;
 

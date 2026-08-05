@@ -1,4 +1,4 @@
-using PaymentGateway.Api.Models.Requests;
+using PaymentGateway.Api.Contracts.Merchant;
 
 namespace PaymentGateway.Api.TestUtils.Builders;
 

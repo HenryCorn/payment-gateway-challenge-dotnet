@@ -2,8 +2,6 @@ using System.Net;
 using System.Text.Json;
 
 using PaymentGateway.Api.Domain;
-using PaymentGateway.Api.Enums;
-using PaymentGateway.Api.Models.Responses;
 using PaymentGateway.Api.TestUtils.Builders;
 
 using WireMock.RequestBuilders;
