@@ -15,6 +15,7 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddSingleton<PaymentsRepository>();
 builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddSingleton<IPaymentsRepository, PaymentsRepository>();
 builder.Services.AddValidatorsFromAssemblyContaining<PostPaymentRequestValidator>();
 builder.Services.AddAcquiringBank(builder.Configuration);
 
