@@ -1,6 +1,4 @@
-using PaymentGateway.Api.Enums;
-using PaymentGateway.Api.Models.Requests;
-using PaymentGateway.Api.Models.Responses;
+using PaymentGateway.Api.Contracts.Merchant;
 
 namespace PaymentGateway.Api.Domain;
 
