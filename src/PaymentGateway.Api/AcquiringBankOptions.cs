@@ -5,6 +5,8 @@ namespace PaymentGateway.Api;
 /// </summary>
 public sealed class AcquiringBankOptions
 {
+    public const string SectionName = "AcquiringBank";
+    
     /// <summary>
     /// Gets or sets the base address of the acquiring bank service.
     /// </summary>
@@ -13,12 +15,12 @@ public sealed class AcquiringBankOptions
     /// <summary>
     /// Gets or sets the deadline for a single attempt.
     /// </summary>
-    public TimeSpan? Timeout { get; set; } = TimeSpan.FromSeconds(5);
+    public TimeSpan RequestTimeout { get; set; } = TimeSpan.FromSeconds(5);
     
     /// <summary>
     /// Gets or sets the maximum number of retry attempts for transient failures.
     /// </summary>
-    public int? MaxRetryAttempts { get; set; } = 3;
+    public int MaxRetryAttempts { get; set; } = 3;
     
     /// <summary>
     /// Gets or sets the minimum attempts before the circuit breaker opens.

@@ -1,5 +1,6 @@
 using FluentValidation;
 
+using PaymentGateway.Api.Extensions;
 using PaymentGateway.Api.Services;
 using PaymentGateway.Api.Validation;
 
@@ -15,6 +16,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddSingleton<PaymentsRepository>();
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddValidatorsFromAssemblyContaining<PostPaymentRequestValidator>();
+builder.Services.AddAcquiringBank(builder.Configuration);
 
 var app = builder.Build();
 
