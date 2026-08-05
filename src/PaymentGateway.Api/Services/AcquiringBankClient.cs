@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text.Json;
 
 using PaymentGateway.Api.Contracts.AcquiringBank;
 using PaymentGateway.Api.Domain;
@@ -25,7 +26,7 @@ internal sealed class AcquiringBankClient : IAcquiringBankClient
     }
     
     /// <inheritdoc/>
-        public async Task<BankPaymentResult> AuthorizeAsync(Payment payment, CancellationToken cancellationToken)
+    public async Task<BankPaymentResult> AuthorizeAsync(Payment payment, CancellationToken cancellationToken)
     {
         BankAuthorizationRequest request = BankAuthorizationRequest.FromValidatedPayment(payment);
 
@@ -60,6 +61,15 @@ internal sealed class AcquiringBankClient : IAcquiringBankClient
                 exception,
                 "Acquiring bank was unreachable ({HttpRequestError}) for card ****{LastFourCardDigits}.",
                 exception.HttpRequestError,
+                payment.LastFourCardDigits);
+
+            return new BankPaymentResult(BankPaymentOutcome.Unavailable);
+        }
+        catch (JsonException exception)
+        {
+            _logger.LogWarning(
+                exception,
+                "Acquiring bank returned an unparseable body for card ****{LastFourCardDigits}.",
                 payment.LastFourCardDigits);
 
             return new BankPaymentResult(BankPaymentOutcome.Unavailable);

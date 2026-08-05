@@ -104,6 +104,24 @@ public class AcquiringBankClientTests
     }
 
     [Fact]
+    public async Task AuthorizeAsync_ReturnsUnavailable_WhenTheBankReturns200WithAnUnparseableBody()
+    {
+        using AcquiringBankTestHost host = new();
+        host.Bank
+            .Given(Request.Create().WithPath("/payments").UsingPost())
+            .RespondWith(Response.Create()
+                .WithStatusCode(HttpStatusCode.OK)
+                .WithHeader("Content-Type", "application/json")
+                .WithBody("<html>Bad Gateway</html>"));
+
+        BankPaymentResult result =
+            await host.Client.AuthorizeAsync(SamplePayment(AuthorizingCard), CancellationToken.None);
+
+        Assert.Equal(BankPaymentOutcome.Unavailable, result.Outcome);
+        Assert.Null(result.AuthorizationCode);
+    }
+
+    [Fact]
     public async Task AuthorizeAsync_Sends_TheBanksWireContract()
     {
         using AcquiringBankTestHost host = new();
