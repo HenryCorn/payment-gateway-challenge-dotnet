@@ -1,0 +1,98 @@
+### Payment gateway - happy paths
+### (AI Generayed) Card last digit drives the bank: odd -> authorized, even -> declined, 0 -> 503.
+### Run top to bottom: the POSTs stash their new id so the GETs below can use it.
+### The 503 request is last on purpose - it opens the circuit breaker for 5s.
+
+### Authorize a payment (card ends 7) -> 201
+POST {{host}}/api/Payments
+Content-Type: application/json
+
+{
+  "cardNumber": "2222405343248877",
+  "expiryMonth": 4,
+  "expiryYear": 2030,
+  "currency": "GBP",
+  "amount": 100,
+  "cvv": "123"
+}
+
+> {% client.global.set("authorizedId", response.body.id); %}
+
+### Retrieve it -> 200
+GET {{host}}/api/Payments/{{authorizedId}}
+
+### Decline a payment (card ends 4) -> 201, status Declined
+POST {{host}}/api/Payments
+Content-Type: application/json
+
+{
+  "cardNumber": "2222405343248874",
+  "expiryMonth": 4,
+  "expiryYear": 2030,
+  "currency": "GBP",
+  "amount": 250,
+  "cvv": "456"
+}
+
+> {% client.global.set("declinedId", response.body.id); %}
+
+### Retrieve it -> 200, still Declined
+GET {{host}}/api/Payments/{{declinedId}}
+
+### USD, 4-digit CVV, 1050 = $10.50 -> 201
+POST {{host}}/api/Payments
+Content-Type: application/json
+
+{
+  "cardNumber": "2222405343248877",
+  "expiryMonth": 12,
+  "expiryYear": 2029,
+  "currency": "USD",
+  "amount": 1050,
+  "cvv": "1234"
+}
+
+### EUR, smallest valid amount -> 201
+POST {{host}}/api/Payments
+Content-Type: application/json
+
+{
+  "cardNumber": "2222405343248877",
+  "expiryMonth": 1,
+  "expiryYear": 2031,
+  "currency": "EUR",
+  "amount": 1,
+  "cvv": "999"
+}
+
+### Unknown id -> 404
+GET {{host}}/api/Payments/00000000-0000-0000-0000-000000000000
+
+### Bank unavailable (card ends 0) -> 502 after retries.
+### LAST ON PURPOSE: this opens the circuit breaker. Anything sent in the next
+### ~5 seconds gets 502 without reaching the bank. Wait, or restart the API.
+POST {{host}}/api/Payments
+Content-Type: application/json
+
+{
+  "cardNumber": "2222405343248870",
+  "expiryMonth": 4,
+  "expiryYear": 2030,
+  "currency": "GBP",
+  "amount": 100,
+  "cvv": "123"
+}
+
+### Send this immediately after the one above to see the open circuit:
+### a good card, 502 anyway, and "circuit is open" in the app log. -> 502
+POST {{host}}/api/Payments
+Content-Type: application/json
+
+{
+  "cardNumber": "2222405343248877",
+  "expiryMonth": 4,
+  "expiryYear": 2030,
+  "currency": "GBP",
+  "amount": 100,
+  "cvv": "123"
+}

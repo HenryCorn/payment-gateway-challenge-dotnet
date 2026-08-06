@@ -1,0 +1,162 @@
+### Rejected requests. All 422 except the last three, which are 400/404 because
+### (AI Generayed) the request could not be parsed or routed at all - validation never ran.
+### None of these should reach the bank: `docker compose logs -f bank_simulator`
+### should stay silent while this file runs.
+
+### CVV too short -> 422
+POST {{host}}/api/Payments
+Content-Type: application/json
+
+{
+  "cardNumber": "2222405343248877",
+  "expiryMonth": 4,
+  "expiryYear": 2030,
+  "currency": "GBP",
+  "amount": 100,
+  "cvv": "12"
+}
+
+### CVV not numeric -> 422
+POST {{host}}/api/Payments
+Content-Type: application/json
+
+{
+  "cardNumber": "2222405343248877",
+  "expiryMonth": 4,
+  "expiryYear": 2030,
+  "currency": "GBP",
+  "amount": 100,
+  "cvv": "12a"
+}
+
+### Card number too short, 13 digits -> 422
+POST {{host}}/api/Payments
+Content-Type: application/json
+
+{
+  "cardNumber": "2222405343248",
+  "expiryMonth": 4,
+  "expiryYear": 2030,
+  "currency": "GBP",
+  "amount": 100,
+  "cvv": "123"
+}
+
+### Card number with spaces -> 422
+POST {{host}}/api/Payments
+Content-Type: application/json
+
+{
+  "cardNumber": "2222 4053 4324 8877",
+  "expiryMonth": 4,
+  "expiryYear": 2030,
+  "currency": "GBP",
+  "amount": 100,
+  "cvv": "123"
+}
+
+### Expiry month 13 -> 422
+POST {{host}}/api/Payments
+Content-Type: application/json
+
+{
+  "cardNumber": "2222405343248877",
+  "expiryMonth": 13,
+  "expiryYear": 2030,
+  "currency": "GBP",
+  "amount": 100,
+  "cvv": "123"
+}
+
+### Expiry in the past -> 422, reported against "Expiry"
+POST {{host}}/api/Payments
+Content-Type: application/json
+
+{
+  "cardNumber": "2222405343248877",
+  "expiryMonth": 1,
+  "expiryYear": 2020,
+  "currency": "GBP",
+  "amount": 100,
+  "cvv": "123"
+}
+
+### Two-digit expiry year - reads as year 26, so it is in the past -> 422
+POST {{host}}/api/Payments
+Content-Type: application/json
+
+{
+  "cardNumber": "2222405343248877",
+  "expiryMonth": 4,
+  "expiryYear": 26,
+  "currency": "GBP",
+  "amount": 100,
+  "cvv": "123"
+}
+
+### Unsupported currency -> 422
+POST {{host}}/api/Payments
+Content-Type: application/json
+
+{
+  "cardNumber": "2222405343248877",
+  "expiryMonth": 4,
+  "expiryYear": 2030,
+  "currency": "JPY",
+  "amount": 100,
+  "cvv": "123"
+}
+
+### Amount of zero -> 422
+POST {{host}}/api/Payments
+Content-Type: application/json
+
+{
+  "cardNumber": "2222405343248877",
+  "expiryMonth": 4,
+  "expiryYear": 2030,
+  "currency": "GBP",
+  "amount": 0,
+  "cvv": "123"
+}
+
+### Empty body -> 422 listing all six fields at once
+POST {{host}}/api/Payments
+Content-Type: application/json
+
+{}
+
+### Three rules broken at once -> 422 with three errors
+POST {{host}}/api/Payments
+Content-Type: application/json
+
+{
+  "cardNumber": "nope",
+  "expiryMonth": 4,
+  "expiryYear": 2030,
+  "currency": "XYZ",
+  "amount": 100,
+  "cvv": "12"
+}
+
+### Malformed JSON -> 400, not 422: it could not be parsed
+POST {{host}}/api/Payments
+Content-Type: application/json
+
+{ "cardNumber": "2222405343248877",
+
+### Wrong type for amount -> 400: binding failed before validation
+POST {{host}}/api/Payments
+Content-Type: application/json
+
+{
+  "cardNumber": "2222405343248877",
+  "expiryMonth": 4,
+  "expiryYear": 2030,
+  "currency": "GBP",
+  "amount": "one hundred",
+  "cvv": "123"
+}
+
+### Malformed GUID in the path -> 404: the {id:guid} route constraint rejects it
+GET {{host}}/api/Payments/not-a-guid

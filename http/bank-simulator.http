@@ -1,0 +1,58 @@
+### Straight at the Mountebank simulator, bypassing the gateway.
+### (AI Generayed) Needs `docker compose up -d`. Note snake_case here vs camelCase on our API.
+
+### Authorized (card ends 7) -> 200, authorized true + a real authorization_code
+POST {{bank}}/payments
+Content-Type: application/json
+
+{
+  "card_number": "2222405343248877",
+  "expiry_date": "04/2030",
+  "currency": "GBP",
+  "amount": 100,
+  "cvv": "123"
+}
+
+### Unauthorized (card ends 4) -> 200, authorized false.
+### authorization_code comes back as "" - present but empty, never trust it.
+POST {{bank}}/payments
+Content-Type: application/json
+
+{
+  "card_number": "2222405343248874",
+  "expiry_date": "04/2030",
+  "currency": "GBP",
+  "amount": 100,
+  "cvv": "123"
+}
+
+### Service unavailable (card ends 0) -> 503
+POST {{bank}}/payments
+Content-Type: application/json
+
+{
+  "card_number": "2222405343248870",
+  "expiry_date": "04/2030",
+  "currency": "GBP",
+  "amount": 100,
+  "cvv": "123"
+}
+
+### Missing field -> 400 with an "error_message" key (snake_case)
+POST {{bank}}/payments
+Content-Type: application/json
+
+{
+  "card_number": "2222405343248877",
+  "currency": "GBP",
+  "amount": 100,
+  "cvv": "123"
+}
+
+### Wrong path -> 400 with an "errorMessage" key (camelCase).
+### Same status, different body shape - which is why the client only ever
+### branches on the status code and never parses the bank's error body.
+POST {{bank}}/nope
+Content-Type: application/json
+
+{}
