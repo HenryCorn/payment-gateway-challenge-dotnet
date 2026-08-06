@@ -8,14 +8,30 @@ The assignment this was built against is in [`docs/CHALLENGE_BRIEF.md`](docs/CHA
 
 ## Quickstart
 
+Spin up the acquiring bank and the aspire dashboard.
+
 ```bash
-docker compose up -d                    # bank simulator + Aspire dashboard
+docker compose up -d bank_simulator aspire-dashboard
+```
+
+**Option A — the API on the host**, for local development:
+
+```bash
 dotnet run --project src/PaymentGateway.Api
 ```
 
-The API listens on `https://localhost:7092` and `http://localhost:5067`, and
-opens Swagger at `https://localhost:7092/swagger`. The telemetry dashboard is at
-`http://localhost:18888`.
+Listens on `https://localhost:7092` and `http://localhost:5067`, Swagger at
+`https://localhost:7092/swagger`.
+
+**Option B — the whole stack in containers**, closest to production:
+
+```bash
+docker compose up -d --build
+```
+
+API on `http://localhost:5100` . Swagger at `http://localhost:5100/swagger`.
+
+Telemetry dashboard is at `http://localhost:18888` 
 
 ```bash
 dotnet test                             # no Docker needed for this one
@@ -31,8 +47,9 @@ The bank simulator keys off the last digit of the card number.
 | `2222405343248874` | even | Declined |
 | `2222405343248870` | zero | Bank returns 503 — the gateway retries, then gives up |
 
-Ready-to-run requests for all of these are in [`http/payments.http`](http/payments.http)
-and [`http/validation.http`](http/validation.http).
+Ready-to-run requests for all of these are in [`http/`](http/payments.http) —
+pick the `local` or `docker` environment depending on which quickstart option
+you used (see [`http/README.md`](http/README.md)).
 
 ## The API
 
@@ -111,3 +128,6 @@ project. `dotnet test` runs both, and neither needs Docker.
 - [`docs/DevOps.md`](docs/DevOps.md) — CI and the automated PR review
 - [`docs/NOTES.md`](docs/NOTES.md) — working notes kept while building it
 - [`docs/CHALLENGE_BRIEF.md`](docs/CHALLENGE_BRIEF.md) — the original assignment
+
+
+(Note: AI generated README.)
