@@ -1,4 +1,6 @@
-﻿using FluentValidation;
+﻿using System.Diagnostics;
+
+using FluentValidation;
 using FluentValidation.Results;
 
 using Microsoft.AspNetCore.Mvc;
@@ -16,6 +18,7 @@ public class PaymentsController : Controller
     private readonly IPaymentsRepository _paymentsRepository;
     private readonly IValidator<PostPaymentRequest> _paymentValidator;
     private readonly IAcquiringBankClient _acquiringBankClient;
+    private readonly PaymentsMetrics _paymentsMetrics;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PaymentsController"/> class.
@@ -23,14 +26,17 @@ public class PaymentsController : Controller
     /// <param name="paymentsRepository"> The repository for storing and retrieving payment responses.</param>
     /// <param name="paymentValidator"> The validator for validating incoming payment requests.</param>
     /// <param name="acquiringBankClient"> The client for communicating with the acquiring bank.</param>
+    /// <param name="paymentsMetrics"> The counter for payments that reached a final status.</param>
     public PaymentsController(
         IPaymentsRepository paymentsRepository,
         IValidator<PostPaymentRequest> paymentValidator,
-        IAcquiringBankClient acquiringBankClient)
+        IAcquiringBankClient acquiringBankClient,
+        PaymentsMetrics paymentsMetrics)
     {
         _paymentsRepository = paymentsRepository;
         _paymentValidator = paymentValidator;
         _acquiringBankClient = acquiringBankClient;
+        _paymentsMetrics = paymentsMetrics;
     }
     
     /// <summary>
@@ -93,6 +99,9 @@ public class PaymentsController : Controller
                 PaymentResponse response = payment.ToResponse(Guid.NewGuid(), status);
                 _paymentsRepository.AddPayment(response);
                 
+                Activity.Current?.SetTag("payment.status", status.ToString());
+                _paymentsMetrics.RecordProcessed(status, payment.Currency);
+
                 return CreatedAtRoute("GetPayment", new { id = response.Id }, response);
             case BankPaymentOutcome.Unavailable:
                 return Problem(

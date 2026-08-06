@@ -2,6 +2,10 @@ using FluentValidation;
 
 using Microsoft.AspNetCore.Mvc;
 
+using OpenTelemetry.Logs;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 using PaymentGateway.Api.Extensions;
 using PaymentGateway.Api.Services;
 using PaymentGateway.Api.Validation;
@@ -11,7 +15,6 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.Configure<ApiBehaviorOptions>(options =>
 {
     // Disclosure: AI generated this block of Api Options.
@@ -27,6 +30,25 @@ builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddSingleton<IPaymentsRepository, PaymentsRepository>();
 builder.Services.AddValidatorsFromAssemblyContaining<PostPaymentRequestValidator>();
 builder.Services.AddAcquiringBank(builder.Configuration);
+builder.Services.AddSingleton<PaymentsMetrics>();
+
+builder.Services.AddOpenTelemetry()
+    .ConfigureResource(resource => resource.AddService("payment-gateway"))
+    .WithTracing(tracing => tracing
+        .AddAspNetCoreInstrumentation()
+        .AddHttpClientInstrumentation()
+        .AddOtlpExporter())
+    .WithMetrics(metrics => metrics
+        .AddAspNetCoreInstrumentation()
+        .AddHttpClientInstrumentation()
+        .AddMeter(PaymentsMetrics.MeterName)
+        .AddOtlpExporter());
+
+builder.Logging.AddOpenTelemetry(logging =>
+{
+    logging.IncludeScopes = true;
+    logging.AddOtlpExporter();
+});
 
 var app = builder.Build();
 
@@ -38,8 +60,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
-app.UseAuthorization();
 
 app.MapControllers();
 

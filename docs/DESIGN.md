@@ -17,19 +17,6 @@ Decisions and assumptions for the assignment.
 
 - CVVs and card numbers are strings to preserve leading zeros.
 
-## Acquiring Bank
-
-- Added retries just for when the bank didn't process the request. Not retrying timeouts to be on the safe side at avoiding charging 2 times for the same transaction. (only a declined is an actual declined).
-
-- HttpClient via IHttpClientFactory as it was easy to inject the resilience policy.
-
-- With the validation in place it should be impossible to get InvalidRequest from the bank, so if that happens it's a bug and logging it as a error
-
-- Not parsing the error message from the bank because it uses multiple names for the same property, sticking to the contract instead.
-
-- Added integration test project to check how my implemntation of the client would behave with a mock of the acquiring bank.
-
-
 ## Payments Endpoint
 
 - Only call the bank if validation passes, and return informative error messages when it's invalid
@@ -53,6 +40,45 @@ For two endpoints and one flow, a PaymentsService would have exactly one caller.
 
 - Sticked with the GUIDs for payment requests.
 
-## Known gaps
+## Acquiring Bank
 
-- No idempotency key on POST /api/Payments. Every call generates a new GUID and authorizes with the bank, so a merchant retrying after a timeout would create a second payment and a second authorization. Acquiring bank didn't have it and I was trying to avoid over-engineering.
+- Added retries just for when the bank didn't process the request. Not retrying timeouts to be on the safe side at avoiding charging 2 times for the same transaction. (only a declined is an actual declined).
+
+- HttpClient via IHttpClientFactory as it was easy to inject the resilience policy.
+
+- The options are bound by name from the `AcquiringBank` section and validated at startup.
+
+- With the validation in place it should be impossible to get InvalidRequest from the bank, so if that happens it's a bug and logging it as a error
+
+- Not parsing the error message from the bank because it uses multiple names for the same property, sticking to the contract instead.
+
+## Observability
+
+- Traces come from auto-instrumentation only.
+
+- A side effect I like: because the resilience pipeline and the instrumentation sit on the same HttpClient, a retry shows up as extra outbound spans inside the same trace.
+
+- Custom span tag, `payment.status`, on the request span.
+
+- Sensitive information is out of span tags.
+
+- One metric: a `payments.processed` counter tagged with status and currency, both low-cardinality. I didn't add a duration histogram for the bank call because the HttpClient instrumentation already emits one; and amount stays off metrics entirely — an unbounded value as a tag makes the series count unbounded too.
+
+- Logs go through the OTel logging provider so they carry the trace id.
+
+- Everything exports over OTLP to an Aspire dashboard container in compose.
+
+## Testing
+
+- Unit tests in `PaymentGateway.Api.Tests`, and a separate `PaymentGateway.Api.IntegrationTests` project for the tests that need a socket.
+
+- `PaymentGateway.Api.TestUtils` holds the request builder shared by both test projects, so a valid request is defined once.
+
+## Deliberately out of scope
+
+- No idempotency key. It would protect against a duplicate inbound request.
+
+## AI tooling
+
+Claude Code was used throughout: it reviewed the PR plans to split the work in reasonable chunks, code and tests.
+A `dotnet-reviewer` subagent runs on every pull request (see `docs/DevOps.md` for the CI setup). 
