@@ -1,0 +1,10 @@
+# ** required: a bare bin/ only matches at the context root.
+**/bin/
+**/obj/
+.git/
+.github/
+.idea/
+test/
+docs/
+http/
+*.md
