@@ -38,6 +38,13 @@ Decisions and assumptions for the assignment.
 
 - Suppressed the automatic [ApiController] model-state filter so validation has exactly one path and one response shape.
 
+- Unavailable maps to 502 rather than 503. 503 would say this gateway is down, and it isn't, the bank is.
+
+- InvalidRequest maps to 500. My own validation should make it impossible, so if it fires it's a bug in my request mapping.
+
+- The orchestration (validate, call the bank, map the outcome, store, respond) lives in the controller rather than a service class.
+For two endpoints and one flow, a PaymentsService would have exactly one caller. The interfaces I inject already give me the seams I need for testing.
+
 ## Storage
 
 - In-memory as per the brief, swapped the List for a ConcurrentDictionary because the repository is a singleton and requests can be concurrent.
@@ -45,3 +52,7 @@ Decisions and assumptions for the assignment.
 - Storing response shape to avoid keeping sensitive data.
 
 - Sticked with the GUIDs for payment requests.
+
+## Known gaps
+
+- No idempotency key on POST /api/Payments. Every call generates a new GUID and authorizes with the bank, so a merchant retrying after a timeout would create a second payment and a second authorization. Acquiring bank didn't have it and I was trying to avoid over-engineering.

@@ -40,7 +40,7 @@ public class PaymentsController : Controller
     /// <returns> An <see cref="ActionResult"/> containing the payment response if found; otherwise, a NotFound result.</returns>
 
     [HttpGet("{id:guid}", Name = "GetPayment")]
-    public ActionResult<PaymentResponse?> GetPaymentAsync(Guid id)
+    public ActionResult<PaymentResponse?> GetPayment(Guid id)
     {
         PaymentResponse? payment = _paymentsRepository.GetPayment(id);
         
@@ -63,6 +63,11 @@ public class PaymentsController : Controller
         PostPaymentRequest paymentRequest,
         CancellationToken cancellationToken)
     {
+        if (paymentRequest is null || !ModelState.IsValid)
+        {
+            return ValidationProblem(statusCode: StatusCodes.Status400BadRequest);
+        }
+
         ValidationResult validationResult = await _paymentValidator.ValidateAsync(paymentRequest, cancellationToken);
         if (!validationResult.IsValid)
         {
@@ -95,6 +100,7 @@ public class PaymentsController : Controller
                     title: "The acquiring bank is unavailable",
                     detail: "The payment was not processed. Please retry later.");
 
+            case BankPaymentOutcome.InvalidRequest:
             default:
                 return Problem(statusCode: StatusCodes.Status500InternalServerError);
         }

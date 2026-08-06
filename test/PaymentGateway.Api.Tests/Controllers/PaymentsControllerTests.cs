@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using System.Net.Http.Json;
+using System.Text;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
@@ -171,6 +172,23 @@ public class PaymentsControllerTests : IDisposable
 
         Assert.DoesNotContain(TestCard, body, StringComparison.Ordinal);
         Assert.DoesNotContain("\"123\"", body, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData("{ \"cardNumber\": \"2222405343248877\",")]                    // truncated JSON
+    [InlineData("{\"cardNumber\":\"2222405343248877\",\"amount\":\"lots\"}")]  // wrong type for amount
+    [InlineData("")]                                                           // no body at all
+    public async Task PostPayment_Returns400_WhenTheBodyCannotBeParsed(string body)
+    {
+        BankAnswers(BankPaymentOutcome.Authorized);
+
+        using StringContent content = new(body, Encoding.UTF8, "application/json");
+
+        HttpResponseMessage response = await _client.PostAsync("/api/Payments", content);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        _bank.VerifyNoOtherCalls();
+        Assert.Null(_stored);
     }
 
     private void BankAnswers(BankPaymentOutcome outcome, string? authorizationCode = null)
