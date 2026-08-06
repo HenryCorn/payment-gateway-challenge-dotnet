@@ -42,7 +42,7 @@ public class PaymentsController : Controller
     [HttpGet("{id:guid}", Name = "GetPayment")]
     public ActionResult<PaymentResponse?> GetPaymentAsync(Guid id)
     {
-        PaymentResponse? payment = _paymentsRepository.Get(id);
+        PaymentResponse? payment = _paymentsRepository.GetPayment(id);
         
         if (payment is null)
         {
@@ -86,7 +86,7 @@ public class PaymentsController : Controller
                     ? PaymentStatus.Authorized
                     : PaymentStatus.Declined;
                 PaymentResponse response = payment.ToResponse(Guid.NewGuid(), status);
-                _paymentsRepository.Add(response);
+                _paymentsRepository.AddPayment(response);
                 
                 return CreatedAtRoute("GetPayment", new { id = response.Id }, response);
             case BankPaymentOutcome.Unavailable:
