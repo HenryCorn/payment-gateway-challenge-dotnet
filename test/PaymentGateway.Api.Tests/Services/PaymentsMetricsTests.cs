@@ -23,30 +23,35 @@ public class PaymentsMetricsTests : IDisposable
 
         _metrics = new PaymentsMetrics(meterFactory);
         _collector = new MetricCollector<long>(
-            meterFactory, PaymentsMetrics.MeterName, "payments.processed");
+            meterFactory, PaymentsMetrics.MeterName, "payments.authorizations");
     }
 
-    [Fact]
-    public void RecordProcessed_CountsOnePayment_WithItsStatusAndCurrency()
+    [Theory]
+    [InlineData(BankPaymentOutcome.Authorized)]
+    [InlineData(BankPaymentOutcome.Declined)]
+    [InlineData(BankPaymentOutcome.Unavailable)]
+    [InlineData(BankPaymentOutcome.InvalidRequest)]
+    public void RecordAuthorization_CountsEveryOutcome_NotJustTheOnesThatCreatedAPayment(
+        BankPaymentOutcome outcome)
     {
-        _metrics.RecordProcessed(PaymentStatus.Authorized, "GBP");
+        _metrics.RecordAuthorization(outcome, "GBP");
 
         CollectedMeasurement<long> measurement = Assert.Single(_collector.GetMeasurementSnapshot());
 
         Assert.Equal(1, measurement.Value);
-        Assert.Equal("Authorized", measurement.Tags["payment.status"]);
+        Assert.Equal(outcome.ToString(), measurement.Tags["payment.outcome"]);
         Assert.Equal("GBP", measurement.Tags["payment.currency"]);
     }
 
     [Fact]
-    public void RecordProcessed_TagsNothingBeyondStatusAndCurrency()
+    public void RecordAuthorization_TagsNothingBeyondOutcomeAndCurrency()
     {
-        _metrics.RecordProcessed(PaymentStatus.Declined, "USD");
+        _metrics.RecordAuthorization(BankPaymentOutcome.Declined, "USD");
 
         CollectedMeasurement<long> measurement = Assert.Single(_collector.GetMeasurementSnapshot());
 
         Assert.Equal(
-            new[] { "payment.currency", "payment.status" },
+            new[] { "payment.currency", "payment.outcome" },
             measurement.Tags.Keys.OrderBy(key => key, StringComparer.Ordinal));
     }
 

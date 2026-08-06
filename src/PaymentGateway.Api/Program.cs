@@ -47,6 +47,9 @@ builder.Services.AddOpenTelemetry()
 builder.Logging.AddOpenTelemetry(logging =>
 {
     logging.IncludeScopes = true;
+    logging.IncludeFormattedMessage = true;
+    logging.ParseStateValues = true;
+
     logging.AddOtlpExporter();
 });
 

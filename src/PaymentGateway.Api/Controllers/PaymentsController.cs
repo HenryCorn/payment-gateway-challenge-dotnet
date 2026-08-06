@@ -19,6 +19,7 @@ public class PaymentsController : Controller
     private readonly IValidator<PostPaymentRequest> _paymentValidator;
     private readonly IAcquiringBankClient _acquiringBankClient;
     private readonly PaymentsMetrics _paymentsMetrics;
+    private readonly ILogger<PaymentsController> _logger;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PaymentsController"/> class.
@@ -31,12 +32,14 @@ public class PaymentsController : Controller
         IPaymentsRepository paymentsRepository,
         IValidator<PostPaymentRequest> paymentValidator,
         IAcquiringBankClient acquiringBankClient,
-        PaymentsMetrics paymentsMetrics)
+        PaymentsMetrics paymentsMetrics,
+        ILogger<PaymentsController> logger)
     {
         _paymentsRepository = paymentsRepository;
         _paymentValidator = paymentValidator;
         _acquiringBankClient = acquiringBankClient;
         _paymentsMetrics = paymentsMetrics;
+        _logger = logger;
     }
     
     /// <summary>
@@ -82,12 +85,18 @@ public class PaymentsController : Controller
                 ModelState.AddModelError(failure.PropertyName, failure.ErrorMessage);
             }
 
+            _logger.LogInformation(
+                "Payment request rejected by validation. Fields: {InvalidFields}.",
+                validationResult.Errors.Select(error => error.PropertyName).Distinct());
+
             return ValidationProblem(statusCode: StatusCodes.Status422UnprocessableEntity);
         }
         
         Payment payment = Payment.FromValidatedRequest(paymentRequest);
         
         BankPaymentResult bankPaymentResult = await _acquiringBankClient.AuthorizeAsync(payment, cancellationToken);
+
+        _paymentsMetrics.RecordAuthorization(bankPaymentResult.Outcome, payment.Currency);
 
         switch (bankPaymentResult.Outcome)
         {
@@ -100,10 +109,21 @@ public class PaymentsController : Controller
                 _paymentsRepository.AddPayment(response);
                 
                 Activity.Current?.SetTag("payment.status", status.ToString());
-                _paymentsMetrics.RecordProcessed(status, payment.Currency);
+
+                _logger.LogInformation(
+                    "Payment {PaymentId} {PaymentStatus} for {Currency} {Amount} on card ****{LastFourCardDigits}.",
+                    response.Id,
+                    status,
+                    payment.Currency,
+                    payment.Amount,
+                    payment.LastFourCardDigits);
 
                 return CreatedAtRoute("GetPayment", new { id = response.Id }, response);
             case BankPaymentOutcome.Unavailable:
+                _logger.LogWarning(
+                    "Payment not processed: the acquiring bank was unavailable. Card ****{LastFourCardDigits}.",
+                    payment.LastFourCardDigits);
+
                 return Problem(
                     statusCode: StatusCodes.Status502BadGateway,
                     title: "The acquiring bank is unavailable",
@@ -111,6 +131,11 @@ public class PaymentsController : Controller
 
             case BankPaymentOutcome.InvalidRequest:
             default:
+                _logger.LogError(
+                    "The acquiring bank rejected our request as invalid. This is a defect in this gateway, "
+                    + "not a problem with the payment. Card ****{LastFourCardDigits}.",
+                    payment.LastFourCardDigits);
+
                 return Problem(statusCode: StatusCodes.Status500InternalServerError);
         }
     }

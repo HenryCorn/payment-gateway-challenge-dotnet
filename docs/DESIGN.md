@@ -62,9 +62,7 @@ For two endpoints and one flow, a PaymentsService would have exactly one caller.
 
 - Sensitive information is out of span tags.
 
-- One metric: a `payments.processed` counter tagged with status and currency, both low-cardinality. I didn't add a duration histogram for the bank call because the HttpClient instrumentation already emits one; and amount stays off metrics entirely — an unbounded value as a tag makes the series count unbounded too.
-
-- Logs go through the OTel logging provider so they carry the trace id.
+- One metric: a `payments.authorizations` counter tagged with outcome and currency.
 
 - Everything exports over OTLP to an Aspire dashboard container in compose.
 

@@ -11,22 +11,27 @@ public sealed class PaymentsMetrics
 {
     public const string MeterName = "PaymentGateway.Api";
 
-    private readonly Counter<long> _paymentsProcessed;
+    private readonly Counter<long> _authorizations;
 
     public PaymentsMetrics(IMeterFactory meterFactory)
     {
         Meter meter = meterFactory.Create(MeterName);
 
-        _paymentsProcessed = meter.CreateCounter<long>(
-            "payments.processed",
-            description: "Payments that reached a final status.");
+        _authorizations = meter.CreateCounter<long>(
+            "payments.authorizations",
+            description: "Authorization attempts that reached the bank, by outcome.");
     }
 
-    public void RecordProcessed(PaymentStatus status, string currency)
+    /// <summary>
+    /// Counts one authorization attempt. Every outcome is recorded, not just the
+    /// ones that created a payment - a rising Unavailable count is the signal
+    /// that the bank is down, and it is the reason to alert.
+    /// </summary>
+    public void RecordAuthorization(BankPaymentOutcome outcome, string currency)
     {
-        _paymentsProcessed.Add(
+        _authorizations.Add(
             1,
-            new KeyValuePair<string, object?>("payment.status", status.ToString()),
+            new KeyValuePair<string, object?>("payment.outcome", outcome.ToString()),
             new KeyValuePair<string, object?>("payment.currency", currency));
     }
 }
