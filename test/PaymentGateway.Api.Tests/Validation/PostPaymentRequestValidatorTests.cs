@@ -1,7 +1,5 @@
 using FluentValidation.Results;
-
 using Microsoft.Extensions.Time.Testing;
-
 using PaymentGateway.Api.Contracts.Merchant;
 using PaymentGateway.Api.TestUtils.Builders;
 using PaymentGateway.Api.Validation;

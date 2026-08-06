@@ -1,18 +1,22 @@
-﻿using PaymentGateway.Api.Contracts.Merchant;
+﻿using System.Collections.Concurrent;
+
+using PaymentGateway.Api.Contracts.Merchant;
 
 namespace PaymentGateway.Api.Services;
 
-public class PaymentsRepository
+public class PaymentsRepository : IPaymentsRepository
 {
-    private readonly List<PaymentResponse> Payments = new();
-    
-    public void Add(PaymentResponse payment)
+    private readonly ConcurrentDictionary<Guid, PaymentResponse> _payments = new();
+
+    /// <inheritdoc/>
+    public void AddPayment(PaymentResponse payment)
     {
-        Payments.Add(payment);
+        _payments[payment.Id] = payment;
     }
 
-    public PaymentResponse Get(Guid id)
+    /// <inheritdoc/>
+    public PaymentResponse? GetPayment(Guid id)
     {
-        return Payments.FirstOrDefault(p => p.Id == id);
+        return _payments.GetValueOrDefault(id);
     }
 }
