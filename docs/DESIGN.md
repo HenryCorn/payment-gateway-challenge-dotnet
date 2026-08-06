@@ -29,3 +29,19 @@ Decisions and assumptions for the assignment.
 
 - Added integration test project to check how my implemntation of the client would behave with a mock of the acquiring bank.
 
+
+## Payments Endpoint
+
+- Only call the bank if validation passes, and return informative error messages when it's invalid
+
+- Declined comes as 201 because it's a created payment but resolved to be Declined.
+
+- Suppressed the automatic [ApiController] model-state filter so validation has exactly one path and one response shape.
+
+## Storage
+
+- In-memory as per the brief, swapped the List for a ConcurrentDictionary because the repository is a singleton and requests can be concurrent.
+
+- Storing response shape to avoid keeping sensitive data.
+
+- Sticked with the GUIDs for payment requests.
