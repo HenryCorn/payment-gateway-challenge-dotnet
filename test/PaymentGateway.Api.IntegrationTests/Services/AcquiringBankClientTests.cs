@@ -129,7 +129,7 @@ public class AcquiringBankClientTests
 
         await host.Client.AuthorizeAsync(SamplePayment(AuthorizingCard), CancellationToken.None);
 
-        string body = host.Bank.LogEntries.Single().RequestMessage.Body!;
+        string body = host.Bank.LogEntries.Single().RequestMessage!.Body!;
         using JsonDocument document = JsonDocument.Parse(body);
         JsonElement root = document.RootElement;
 
